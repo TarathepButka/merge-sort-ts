@@ -22,10 +22,10 @@ No built-in sort functions (`Array.sort()`, `Array.toSorted()`, etc.) are used.
 
 ## Algorithm
 
-1. **Reverse** `collection_2` to make it ascending (O(n) pass).
-2. **3-way pointer merge** — compare heads of all three arrays and pick the smallest at each step.
-3. **Time complexity**: O(n) where n = total elements.
-4. **Space complexity**: O(n) for the result array.
+1. **Read `collection_2` backwards** — since it's sorted descending, reading from the end yields ascending order. No copy or reverse needed.
+2. **3-way pointer merge** — `collection_1` and `collection_3` read forward, `collection_2` reads backward. Each step picks the smallest value among the three pointers.
+3. **Time complexity**: O(n) single pass, where n = total elements.
+4. **Space complexity**: O(n) for the result array only — no extra intermediate arrays.
 
 ## Prerequisites
 
@@ -84,8 +84,9 @@ npm run typecheck
 merge-sort-ts/
 ├── src/
 │   ├── merge.ts          # Core merge function
-│   ├── merge.test.ts     # Unit tests (Vitest)
 │   └── main.ts           # Demo entry point
+├── tests/
+│   └── merge.test.ts     # Unit tests (Vitest)
 ├── package.json
 ├── tsconfig.json
 ├── vitest.config.ts
