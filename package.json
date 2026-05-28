@@ -1,0 +1,21 @@
+{
+  "name": "merge-sort-ts",
+  "version": "1.0.0",
+  "description": "A TypeScript library implementing a custom 3-way merge of sorted arrays without using built-in sort functions",
+  "type": "module",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:cov": "vitest run --coverage",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["merge", "sort", "typescript", "algorithm"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.1",
+    "tsx": "^4.19.4",
+    "@vitest/coverage-v8": "^3.2.1"
+  }
+}
