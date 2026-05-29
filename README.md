@@ -22,10 +22,11 @@ No built-in sort functions (`Array.sort()`, `Array.toSorted()`, etc.) are used.
 
 ## Algorithm
 
-1. **Read `collection_2` backwards** — since it's sorted descending, reading from the end yields ascending order. No copy or reverse needed.
-2. **3-way pointer merge** — `collection_1` and `collection_3` read forward, `collection_2` reads backward. Each step picks the smallest value among the three pointers.
-3. **Time complexity**: O(n) single pass, where n = total elements.
-4. **Space complexity**: O(n) for the result array only — no extra intermediate arrays.
+1. **Abstract traversal direction** — each input array is wrapped in an `AscendingIterator` that always yields values from smallest to largest. `collection_1` and `collection_3` use a forward iterator; `collection_2` (descending) uses a reverse iterator.
+2. **Single-loop k-way merge** — one loop iterates `n` times (total elements). Each iteration scans all `k` iterators (k = 3) to find the minimum `current` value, writes it to the result, and advances the chosen iterator.
+3. **Time complexity**: O(n × k) where k = 3, effectively **O(n)**.
+4. **Space complexity**: O(n + k) — the result array (n) plus k iterator objects. With k = 3, effectively **O(n)**.
+
 
 ## Prerequisites
 

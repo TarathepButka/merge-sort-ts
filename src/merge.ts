@@ -1,17 +1,65 @@
 /**
+ * An ascending iterator over a sorted array.
+ * Abstracts away whether the underlying data is sorted asc or desc,
+ * always yielding values from smallest to largest.
+ */
+interface AscendingIterator {
+  /** `true` when every element has been consumed. */
+  readonly done: boolean;
+  /** The next (smallest remaining) value. Only valid when `done` is `false`. */
+  readonly current: number;
+  /** Advance the pointer to the next element. */
+  advance(): void;
+}
+
+/** Iterate an ascending-sorted array from front to back. */
+function forwardIterator(arr: readonly number[]): AscendingIterator {
+  let i = 0;
+
+  return {
+    get done() {
+      return i >= arr.length;
+    },
+    get current() {
+      return arr[i];
+    },
+    advance() {
+      i++;
+    },
+  };
+}
+
+/** Iterate a descending-sorted array from back to front (yielding ascending order). */
+function reverseIterator(arr: readonly number[]): AscendingIterator {
+  let i = arr.length - 1;
+
+  return {
+    get done() {
+      return i < 0;
+    },
+    get current() {
+      return arr[i];
+    },
+    advance() {
+      i--;
+    },
+  };
+}
+
+/**
  * Merges three integer arrays into a single array sorted in ascending order.
  *
  * Given:
- * - `collection1` is sorted ascending (min(0) → max)
- * - `collection2` is sorted descending (max → min(0))
- * - `collection3` is sorted ascending (min(0) → max)
+ * - `collection1` is sorted ascending  (min → max)
+ * - `collection2` is sorted descending (max → min)
+ * - `collection3` is sorted ascending  (min → max)
  * - No built-in sort functions are used.
  *
  * Strategy:
- * - collection1 (asc): read forward  → pointer i starts at 0, increments
- * - collection2 (desc): read backward → pointer j starts at end, decrements
- * - collection3 (asc): read forward  → pointer k starts at 0, increments
- * - 3-way merge picks the smallest head each step → O(n) time.
+ * Each input is wrapped in an {@link AscendingIterator} that always yields
+ * values from smallest to largest, regardless of the underlying sort order.
+ * A single loop then picks the minimum `current` across all non-exhausted
+ * iterators each step → O(n × k) time where k = number of arrays (3).
  *
  * @param collection1 - Array sorted ascending
  * @param collection2 - Array sorted descending
@@ -21,64 +69,31 @@
 export function merge(
   collection1: readonly number[],
   collection2: readonly number[],
-  collection3: readonly number[]
+  collection3: readonly number[],
 ): number[] {
-  const totalLength: number =
+  const iterators: AscendingIterator[] = [
+    forwardIterator(collection1),
+    reverseIterator(collection2),
+    forwardIterator(collection3),
+  ];
+
+  const totalLength =
     collection1.length + collection2.length + collection3.length;
-  const result: number[] = new Array(totalLength);
+  const result = new Array<number>(totalLength);
 
-  let i: number = 0;                        // pointer for collection1 (asc → forward)
-  let j: number = collection2.length - 1;   // pointer for collection2 (desc → backward)
-  let k: number = 0;                        // pointer for collection3 (asc → forward)
-  let r: number = 0;                        // pointer for result
+  for (let r = 0; r < totalLength; r++) {
+    let minIdx = -1;
+    let minVal = Infinity;
 
-  // --- 3-way merge: all three arrays still have elements ---
-  while (i < collection1.length && j >= 0 && k < collection3.length) {
-    if (collection1[i] <= collection2[j] && collection1[i] <= collection3[k]) {
-      result[r++] = collection1[i++];
-    } else if (collection2[j] <= collection1[i] && collection2[j] <= collection3[k]) {
-      result[r++] = collection2[j--];
-    } else {
-      result[r++] = collection3[k++];
+    for (let s = 0; s < iterators.length; s++) {
+      if (!iterators[s].done && iterators[s].current <= minVal) {
+        minVal = iterators[s].current;
+        minIdx = s;
+      }
     }
-  }
 
-  // --- 2-way merges: one array exhausted, two remain ---
-  while (i < collection1.length && j >= 0) {
-    if (collection1[i] <= collection2[j]) {
-      result[r++] = collection1[i++];
-    } else {
-      result[r++] = collection2[j--];
-    }
-  }
-
-  while (i < collection1.length && k < collection3.length) {
-    if (collection1[i] <= collection3[k]) {
-      result[r++] = collection1[i++];
-    } else {
-      result[r++] = collection3[k++];
-    }
-  }
-
-  while (j >= 0 && k < collection3.length) {
-    if (collection2[j] <= collection3[k]) {
-      result[r++] = collection2[j--];
-    } else {
-      result[r++] = collection3[k++];
-    }
-  }
-
-  // --- Drain: only one array left ---
-  while (i < collection1.length) {
-    result[r++] = collection1[i++];
-  }
-
-  while (j >= 0) {
-    result[r++] = collection2[j--];
-  }
-
-  while (k < collection3.length) {
-    result[r++] = collection3[k++];
+    result[r] = minVal;
+    iterators[minIdx].advance();
   }
 
   return result;

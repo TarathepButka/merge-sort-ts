@@ -2,7 +2,7 @@
 
 ## Overview
 
-A TypeScript library implementing a custom merge function that combines three integer arrays into a single sorted (ascending) array **without using any built-in sort functions**. Uses a two-pointer merge technique from merge sort.
+A TypeScript library implementing a custom merge function that combines three integer arrays into a single sorted (ascending) array **without using any built-in sort functions**. Uses an **iterator abstraction** over a k-way merge technique — each input array is wrapped in an `AscendingIterator` that normalizes traversal direction, then a single loop picks the minimum value each step.
 
 ---
 
@@ -159,10 +159,10 @@ merge(collection_1: number[], collection_2: number[], collection_3: number[]): n
 
 ### Strategy
 
-1. **Read `collection_2` backwards** (pointer starts at end, decrements) — since it's already descending, reading from the end yields ascending order. No copy or reverse needed.
-2. **3-way pointer merge** — `collection_1` and `collection_3` read forward, `collection_2` reads backward. Each step picks the smallest head among the three.
-3. **Time complexity**: O(n) single pass, where n = total elements across all arrays.
-4. **Space complexity**: O(n) for the result array only — no extra intermediate arrays.
+1. **Abstract traversal direction** — each input is wrapped in an `AscendingIterator` interface. `forwardIterator` reads ascending arrays front-to-back; `reverseIterator` reads descending arrays back-to-front. Both yield values in ascending order.
+2. **Single-loop k-way merge** — one `for` loop iterates `n` times (total elements). Each iteration scans all `k` iterators (k = 3) to find the minimum `current` value, writes it to the result, and advances the chosen iterator.
+3. **Time complexity**: O(n × k) where k = 3, effectively **O(n)**.
+4. **Space complexity**: O(n + k) — the result array (n) plus k iterator objects. With k = 3, effectively **O(n)**.
 
 ### Prohibited APIs
 
